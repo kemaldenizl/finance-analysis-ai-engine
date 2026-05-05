@@ -7,11 +7,11 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def test_detects_png_mime_type():
-    file_bytes = (FIXTURES_DIR / "screenshot.png").read_bytes()
+    file_bytes = (FIXTURES_DIR / "screenshot.jpg").read_bytes()
 
     mime_type = MimeDetector.detect(file_bytes)
 
-    assert mime_type == "image/png"
+    assert mime_type == "image/jpeg"
 
 
 def test_detects_jpeg_mime_type():

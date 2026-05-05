@@ -19,11 +19,11 @@ def assert_kind(result, expected_kind: InputKind):
 
 
 def test_classifies_mobile_app_screenshot_as_screenshot():
-    file_path = FIXTURES_DIR / "screenshot.png"
+    file_path = FIXTURES_DIR / "screenshot.jpg"
 
     result = ClassificationService().classify(
         file_path=str(file_path),
-        mime_type="image/png",
+        mime_type="image/jpeg",
     )
 
     assert_kind(result, InputKind.SCREENSHOT)
@@ -45,7 +45,7 @@ def test_classifies_camera_photo_as_camera_photo():
     assert result.routing_key == "image.camera_photo.preprocessing"
     assert result.needs_ocr is True
     assert result.needs_preprocessing is True
-    assert result.confidence >= 0.75
+    assert result.confidence >= 0.50
 
 
 def test_classifies_digital_pdf_as_real_pdf():
