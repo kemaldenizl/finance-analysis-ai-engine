@@ -1,6 +1,9 @@
-# Finance AI ENGINE API
+# Finance Analysis AI ENGINE API
 
-FastAPI based input ingestion and classification service for finance AI workflows.
+FastAPI based finance analysis ai engine
+
+## Last Version v0.2.1 Input Preprocessing
+
 
 ## Features
 
