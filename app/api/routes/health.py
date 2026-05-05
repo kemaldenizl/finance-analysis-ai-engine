@@ -3,7 +3,6 @@ from fastapi import APIRouter, Response, status
 from app.core.config import settings
 from app.services.health_service import HealthService
 
-
 router = APIRouter(tags=["health"])
 
 

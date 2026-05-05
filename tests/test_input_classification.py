@@ -3,7 +3,6 @@ from pathlib import Path
 from app.schemas.classification import InputKind
 from app.services.classification_service import ClassificationService
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 

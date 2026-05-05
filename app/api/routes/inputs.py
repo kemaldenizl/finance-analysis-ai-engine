@@ -1,14 +1,13 @@
-from fastapi import APIRouter, UploadFile, File, Depends, Form
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.input_record import InputRecord, InputClassification
+from app.models.input_record import InputClassification, InputRecord
 from app.schemas.input_response import InputUploadResponse
-from app.services.upload_service import UploadService
 from app.services.classification_service import ClassificationService
+from app.services.upload_service import UploadService
 from app.storage.object_storage import ObjectStorage
 from app.workers.stage2_dispatcher import Stage2Dispatcher
-
 
 router = APIRouter(prefix="/v1/inputs", tags=["inputs"])
 

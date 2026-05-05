@@ -2,17 +2,16 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
+    Boolean,
     Column,
-    String,
     DateTime,
     Float,
-    Boolean,
     ForeignKey,
-    JSON,
     Integer,
+    String,
 )
 from sqlalchemy.orm import declarative_base, relationship
-
 
 Base = declarative_base()
 

@@ -2,7 +2,6 @@ from pathlib import Path
 
 from app.services.mime_detector import MimeDetector
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 

@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from fastapi import UploadFile, HTTPException
+from fastapi import HTTPException, UploadFile
 
 from app.core.config import settings
 from app.services.mime_detector import MimeDetector

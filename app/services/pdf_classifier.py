@@ -68,9 +68,7 @@ class PDFClassifier:
                 for rect in rects:
                     image_area_for_page += rect.width * rect.height
 
-            image_area_ratio_for_page = (
-                image_area_for_page / page_area if page_area > 0 else 0.0
-            )
+            image_area_ratio_for_page = image_area_for_page / page_area if page_area > 0 else 0.0
 
             if image_area_ratio_for_page >= self.LARGE_IMAGE_AREA_THRESHOLD:
                 pages_with_large_image += 1
@@ -93,9 +91,7 @@ class PDFClassifier:
         text_page_ratio = pages_with_text / page_count
         large_image_page_ratio = pages_with_large_image / page_count
 
-        global_image_area_ratio = (
-            total_image_area / total_page_area if total_page_area > 0 else 0.0
-        )
+        global_image_area_ratio = total_image_area / total_page_area if total_page_area > 0 else 0.0
 
         features = {
             "mime_type": mime_type,

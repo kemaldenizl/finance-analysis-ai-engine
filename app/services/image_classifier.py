@@ -83,9 +83,7 @@ class ImageClassifier:
                 "camera_exif_tag_count": camera_tag_count,
                 "image_width": image.width,
                 "image_height": image.height,
-                "aspect_ratio": round(image.width / image.height, 4)
-                if image.height
-                else None,
+                "aspect_ratio": round(image.width / image.height, 4) if image.height else None,
             }
 
         except Exception as exc:

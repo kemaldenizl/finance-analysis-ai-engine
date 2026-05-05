@@ -1,7 +1,7 @@
 from app.schemas.classification import ClassificationResult, InputKind
+from app.services.image_classifier import ImageClassifier
 from app.services.mime_detector import MimeDetector
 from app.services.pdf_classifier import PDFClassifier
-from app.services.image_classifier import ImageClassifier
 from app.services.routing_service import RoutingService
 
 
