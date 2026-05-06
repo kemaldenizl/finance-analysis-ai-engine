@@ -21,7 +21,16 @@ class InputPreprocessingRecord(Base):
     output_storage_key = Column(String, nullable=True)
     output_storage_url = Column(String, nullable=True)
 
+    preferred_output_storage_key = Column(String, nullable=True)
+    preferred_output_storage_url = Column(String, nullable=True)
+    preferred_output_variant = Column(String, nullable=True)
+
+    preferred_extraction_method = Column(String, nullable=False, default="ocr_multi_variant")
+    extraction_risk = Column(String, nullable=False, default="medium")
+
     page_count = Column(Integer, nullable=False, default=0)
+    kept_page_count = Column(Integer, nullable=False, default=0)
+    skipped_page_count = Column(Integer, nullable=False, default=0)
 
     preprocessing_version = Column(String, nullable=False)
 
@@ -33,6 +42,7 @@ class InputPreprocessingRecord(Base):
 
     average_quality_score_before = Column(Float, nullable=True)
     average_quality_score_after = Column(Float, nullable=True)
+    ocr_readiness_score = Column(Float, nullable=True)
 
     is_ready_for_extraction = Column(Boolean, nullable=False, default=True)
 

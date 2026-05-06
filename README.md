@@ -3,7 +3,8 @@
 FastAPI based finance analysis ai engine
 
 ## Last Version v0.2.1 Input Preprocessing
-
+- PDF to Image
+- Image quailty updates
 
 ## Features
 

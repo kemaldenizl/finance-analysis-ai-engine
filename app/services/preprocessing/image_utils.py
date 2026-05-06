@@ -23,6 +23,7 @@ class ImageUtils:
     @staticmethod
     def read_image(path: str) -> np.ndarray:
         image = Image.open(path)
+
         return ImageUtils.pil_to_cv(image)
 
     @staticmethod
@@ -33,9 +34,13 @@ class ImageUtils:
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     @staticmethod
+    def normalize_original(image: np.ndarray, max_side: int = 3200) -> np.ndarray:
+        return ImageUtils.resize_if_too_large(image, max_side=max_side)
+
+    @staticmethod
     def resize_if_too_large(
         image: np.ndarray,
-        max_side: int = 2800,
+        max_side: int = 3200,
     ) -> np.ndarray:
         height, width = image.shape[:2]
         longest = max(height, width)
@@ -59,7 +64,7 @@ class ImageUtils:
             return cv2.fastNlMeansDenoising(
                 image,
                 None,
-                h=10,
+                h=8,
                 templateWindowSize=7,
                 searchWindowSize=21,
             )
@@ -67,8 +72,8 @@ class ImageUtils:
         return cv2.fastNlMeansDenoisingColored(
             image,
             None,
-            h=8,
-            hColor=8,
+            h=6,
+            hColor=6,
             templateWindowSize=7,
             searchWindowSize=21,
         )
@@ -78,7 +83,18 @@ class ImageUtils:
         gray = ImageUtils.to_grayscale(image)
 
         clahe = cv2.createCLAHE(
-            clipLimit=2.0,
+            clipLimit=1.8,
+            tileGridSize=(8, 8),
+        )
+
+        return clahe.apply(gray)
+
+    @staticmethod
+    def soft_enhance_grayscale(image: np.ndarray) -> np.ndarray:
+        gray = ImageUtils.to_grayscale(image)
+
+        clahe = cv2.createCLAHE(
+            clipLimit=1.4,
             tileGridSize=(8, 8),
         )
 
@@ -87,7 +103,6 @@ class ImageUtils:
     @staticmethod
     def adaptive_threshold(image: np.ndarray) -> np.ndarray:
         gray = ImageUtils.to_grayscale(image)
-
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 
         return cv2.adaptiveThreshold(
@@ -95,14 +110,13 @@ class ImageUtils:
             255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY,
-            31,
-            11,
+            41,
+            13,
         )
 
     @staticmethod
     def otsu_threshold(image: np.ndarray) -> np.ndarray:
         gray = ImageUtils.to_grayscale(image)
-
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 
         _, thresholded = cv2.threshold(
@@ -118,22 +132,75 @@ class ImageUtils:
     def remove_small_noise(binary_image: np.ndarray) -> np.ndarray:
         kernel = np.ones((2, 2), np.uint8)
 
-        opened = cv2.morphologyEx(
+        return cv2.morphologyEx(
             binary_image,
             cv2.MORPH_OPEN,
             kernel,
             iterations=1,
         )
 
-        return opened
+    @staticmethod
+    def trim_white_border(
+        image: np.ndarray,
+        tolerance: int = 245,
+        padding_ratio: float = 0.015,
+    ) -> tuple[np.ndarray, tuple[int, int, int, int] | None]:
+        gray = ImageUtils.to_grayscale(image)
+
+        mask = gray < tolerance
+        coords = np.argwhere(mask)
+
+        if coords.size == 0:
+            return image, None
+
+        y_min, x_min = coords.min(axis=0)
+        y_max, x_max = coords.max(axis=0)
+
+        height, width = gray.shape[:2]
+        pad = int(max(height, width) * padding_ratio)
+
+        x_min = max(int(x_min) - pad, 0)
+        y_min = max(int(y_min) - pad, 0)
+        x_max = min(int(x_max) + pad, width - 1)
+        y_max = min(int(y_max) + pad, height - 1)
+
+        if x_max <= x_min or y_max <= y_min:
+            return image, None
+
+        cropped = image[y_min : y_max + 1, x_min : x_max + 1]
+
+        return cropped, (x_min, y_min, x_max - x_min + 1, y_max - y_min + 1)
+
+    @staticmethod
+    def crop_bbox(
+        image: np.ndarray,
+        bbox: tuple[int, int, int, int],
+        padding_ratio: float = 0.02,
+    ) -> np.ndarray:
+        x, y, width, height = bbox
+        img_h, img_w = image.shape[:2]
+
+        pad = int(max(img_w, img_h) * padding_ratio)
+
+        x1 = max(x - pad, 0)
+        y1 = max(y - pad, 0)
+        x2 = min(x + width + pad, img_w)
+        y2 = min(y + height + pad, img_h)
+
+        return image[y1:y2, x1:x2]
 
     @staticmethod
     def deskew(image: np.ndarray) -> tuple[np.ndarray, float]:
         gray = ImageUtils.to_grayscale(image)
 
-        inverted = cv2.bitwise_not(gray)
+        binary = cv2.threshold(
+            gray,
+            0,
+            255,
+            cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
+        )[1]
 
-        coords = np.column_stack(np.where(inverted > 0))
+        coords = np.column_stack(np.where(binary > 0))
 
         if len(coords) < 100:
             return image, 0.0
@@ -145,7 +212,7 @@ class ImageUtils:
         else:
             angle = -angle
 
-        if abs(angle) < 0.3 or abs(angle) > 15:
+        if abs(angle) < 0.25 or abs(angle) > 10:
             return image, 0.0
 
         height, width = image.shape[:2]
@@ -165,14 +232,18 @@ class ImageUtils:
 
     @staticmethod
     def find_document_contour(image: np.ndarray) -> np.ndarray | None:
-        resized = ImageUtils.resize_if_too_large(image, max_side=1600)
+        resized = ImageUtils.resize_if_too_large(image, max_side=1800)
 
         ratio_y = image.shape[0] / resized.shape[0]
         ratio_x = image.shape[1] / resized.shape[1]
 
         gray = ImageUtils.to_grayscale(resized)
+
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        edges = cv2.Canny(blurred, 60, 180)
+        edges = cv2.Canny(blurred, 40, 140)
+
+        kernel = np.ones((5, 5), np.uint8)
+        edges = cv2.dilate(edges, kernel, iterations=1)
 
         contours, _ = cv2.findContours(
             edges,
@@ -183,26 +254,38 @@ class ImageUtils:
         if not contours:
             return None
 
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        image_area = resized.shape[0] * resized.shape[1]
+        candidates: list[tuple[float, np.ndarray]] = []
 
-        for contour in contours[:8]:
+        for contour in contours:
             area = cv2.contourArea(contour)
-            image_area = resized.shape[0] * resized.shape[1]
 
-            if area < image_area * 0.15:
+            if area < image_area * 0.10:
                 continue
 
             perimeter = cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
+            approx = cv2.approxPolyDP(contour, 0.018 * perimeter, True)
 
             if len(approx) == 4:
-                approx = approx.reshape(4, 2).astype("float32")
-                approx[:, 0] *= ratio_x
-                approx[:, 1] *= ratio_y
+                approx_points = approx.reshape(4, 2).astype("float32")
 
-                return approx
+                x, y, w, h = cv2.boundingRect(approx)
+                aspect = w / max(h, 1)
 
-        return None
+                if 0.45 <= aspect <= 1.8:
+                    score = area / image_area
+                    candidates.append((score, approx_points))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda item: item[0], reverse=True)
+
+        points = candidates[0][1]
+        points[:, 0] *= ratio_x
+        points[:, 1] *= ratio_y
+
+        return points
 
     @staticmethod
     def order_points(points: np.ndarray) -> np.ndarray:
@@ -232,7 +315,7 @@ class ImageUtils:
         height_b = np.linalg.norm(top_left - bottom_left)
         max_height = int(max(height_a, height_b))
 
-        if max_width < 100 or max_height < 100:
+        if max_width < 200 or max_height < 200:
             return image
 
         destination = np.array(
@@ -247,13 +330,11 @@ class ImageUtils:
 
         matrix = cv2.getPerspectiveTransform(rect, destination)
 
-        warped = cv2.warpPerspective(
+        return cv2.warpPerspective(
             image,
             matrix,
             (max_width, max_height),
         )
-
-        return warped
 
     @staticmethod
     def crop_document_if_found(image: np.ndarray) -> tuple[np.ndarray, bool]:
