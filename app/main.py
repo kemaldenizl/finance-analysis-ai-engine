@@ -4,6 +4,7 @@ from app.api.routes.health import router as health_router
 from app.api.routes.inputs import router as inputs_router
 from app.core.config import settings
 from app.db.base import create_db_tables
+from app.api.routes.preprocessing import router as preprocessing_router
 
 
 def create_app() -> FastAPI:
@@ -15,6 +16,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(inputs_router)
+    app.include_router(preprocessing_router)
 
     @app.on_event("startup")
     def on_startup():
