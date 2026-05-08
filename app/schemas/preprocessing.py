@@ -12,16 +12,6 @@ PreferredExtractionMethod = Literal[
 ]
 
 
-class RegionBox(BaseModel):
-    x: int
-    y: int
-    width: int
-    height: int
-
-    def as_list(self) -> list[int]:
-        return [self.x, self.y, self.width, self.height]
-
-
 class PreprocessedPageOutput(BaseModel):
     page_number: int
 
@@ -34,10 +24,6 @@ class PreprocessedPageOutput(BaseModel):
 
     width: int
     height: int
-
-    region_bbox: RegionBox | None = None
-    page_relevance_score: float | None = None
-    region_relevance_score: float | None = None
 
     operations: list[str] = Field(default_factory=list)
     quality_before: dict[str, Any] = Field(default_factory=dict)
@@ -63,8 +49,6 @@ class PreprocessingResult(BaseModel):
     extraction_risk: ExtractionRisk = "medium"
 
     page_count: int
-    kept_page_count: int = 0
-    skipped_page_count: int = 0
 
     outputs: list[PreprocessedPageOutput]
 

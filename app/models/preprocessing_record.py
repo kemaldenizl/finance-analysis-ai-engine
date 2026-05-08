@@ -29,8 +29,6 @@ class InputPreprocessingRecord(Base):
     extraction_risk = Column(String, nullable=False, default="medium")
 
     page_count = Column(Integer, nullable=False, default=0)
-    kept_page_count = Column(Integer, nullable=False, default=0)
-    skipped_page_count = Column(Integer, nullable=False, default=0)
 
     preprocessing_version = Column(String, nullable=False)
 

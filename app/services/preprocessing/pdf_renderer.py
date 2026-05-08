@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import fitz
 import numpy as np
 from PIL import Image
@@ -8,6 +6,9 @@ from app.core.config import settings
 
 
 class PDFRenderer:
+    def open_document(self, pdf_path: str) -> fitz.Document:
+        return fitz.open(pdf_path)
+
     def render_pages(self, pdf_path: str, dpi: int | None = None) -> list[Image.Image]:
         dpi = dpi or settings.PDF_RENDER_DPI
 
@@ -30,7 +31,12 @@ class PDFRenderer:
 
         return pages
 
-    def render_page_to_numpy(self, pdf_path: str, page_index: int, dpi: int | None = None) -> np.ndarray:
+    def render_page_to_numpy(
+        self,
+        pdf_path: str,
+        page_index: int,
+        dpi: int | None = None,
+    ) -> np.ndarray:
         dpi = dpi or settings.PDF_RENDER_DPI
 
         doc = fitz.open(pdf_path)

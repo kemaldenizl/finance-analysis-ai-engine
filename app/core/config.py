@@ -23,12 +23,9 @@ class Settings(BaseSettings):
     LOCAL_PROCESSED_STORAGE_DIR: Path = Field(default=Path("/storage/processed"))
 
     CLASSIFICATION_MODEL_VERSION: str = "rules-v1"
-    PREPROCESSING_VERSION: str = "preprocessing-v2"
+    PREPROCESSING_VERSION: str = "preprocessing-v2-no-crop"
 
     PDF_RENDER_DPI: int = 220
-
-    FINANCE_REGION_MIN_RELEVANCE_SCORE: float = 0.35
-    FINANCE_PAGE_MIN_RELEVANCE_SCORE: float = 0.35
 
     PREPROCESSING_SAVE_DEBUG_VARIANTS: bool = True
     PREPROCESSING_MAX_OUTPUT_VARIANTS_PER_PAGE: int = 4

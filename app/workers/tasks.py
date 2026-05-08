@@ -39,6 +39,11 @@ def process_input(payload: dict):
             output_type=result.output_type,
             output_storage_key=result.output_storage_key,
             output_storage_url=result.output_storage_url,
+            preferred_output_storage_key=result.preferred_output_storage_key,
+            preferred_output_storage_url=result.preferred_output_storage_url,
+            preferred_output_variant=result.preferred_output_variant,
+            preferred_extraction_method=result.preferred_extraction_method,
+            extraction_risk=result.extraction_risk,
             page_count=result.page_count,
             preprocessing_version=result.preprocessing_version,
             operations_json=result.operations,
@@ -48,10 +53,14 @@ def process_input(payload: dict):
             warnings_json=result.warnings,
             average_quality_score_before=result.average_quality_score_before,
             average_quality_score_after=result.average_quality_score_after,
+            ocr_readiness_score=result.ocr_readiness_score,
             is_ready_for_extraction=result.is_ready_for_extraction,
         )
 
-        input_record.status = "preprocessed" if result.is_ready_for_extraction else "preprocessing_low_quality"
+        if result.is_ready_for_extraction:
+            input_record.status = "preprocessed"
+        else:
+            input_record.status = "preprocessing_needs_review"
 
         db.add(preprocessing_record)
         db.add(input_record)
@@ -63,6 +72,10 @@ def process_input(payload: dict):
             "source_kind": result.source_kind,
             "output_type": result.output_type,
             "page_count": result.page_count,
+            "preferred_output_variant": result.preferred_output_variant,
+            "preferred_extraction_method": result.preferred_extraction_method,
+            "extraction_risk": result.extraction_risk,
+            "ocr_readiness_score": result.ocr_readiness_score,
             "is_ready_for_extraction": result.is_ready_for_extraction,
             "warnings": result.warnings,
         }
