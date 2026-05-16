@@ -20,8 +20,15 @@ class Settings(BaseSettings):
 
     LOCAL_STORAGE_ROOT: Path = Field(default=Path("/storage"))
     LOCAL_INPUT_STORAGE_DIR: Path = Field(default=Path("/storage/inputs"))
+    LOCAL_PROCESSED_STORAGE_DIR: Path = Field(default=Path("/storage/processed"))
 
     CLASSIFICATION_MODEL_VERSION: str = "rules-v1"
+    PREPROCESSING_VERSION: str = "preprocessing-v2-no-crop"
+
+    PDF_RENDER_DPI: int = 220
+
+    PREPROCESSING_SAVE_DEBUG_VARIANTS: bool = True
+    PREPROCESSING_MAX_OUTPUT_VARIANTS_PER_PAGE: int = 4
 
     model_config = SettingsConfigDict(
         env_file=".env",
