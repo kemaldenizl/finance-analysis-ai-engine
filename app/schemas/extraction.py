@@ -43,6 +43,27 @@ class PdfExtractionDebug(BaseModel):
     parsed_source_lines: list[dict[str, Any]] = Field(default_factory=list)
 
 
+class OcrVariantDebug(BaseModel):
+    page: int
+    selected_variant: str
+    selected_image: str
+    selected_psm: int
+    selected_score: float
+    all_variants: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class OcrExtractionDebug(BaseModel):
+    input_kind: str = "preprocessed_image_variants"
+    document_currency: str | None = None
+    total_lines: int = 0
+    candidate_line_count: int = 0
+    transaction_count: int = 0
+    low_confidence_count: int = 0
+    variant_selection: list[OcrVariantDebug] = Field(default_factory=list)
+    rejected_candidate_lines: list[dict[str, Any]] = Field(default_factory=list)
+    parsed_source_lines: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class PdfExtractionSummary(BaseModel):
     transaction_count: int = 0
     low_confidence_count: int = 0
@@ -55,7 +76,7 @@ class PdfExtractionSummary(BaseModel):
 class PdfExtractionResult(BaseModel):
     transactions: list[ExtractedTransaction]
     summary: PdfExtractionSummary
-    debug: PdfExtractionDebug | None = None
+    debug: PdfExtractionDebug | OcrExtractionDebug | None = None
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -65,7 +86,6 @@ class PdfExtractionApiResponse(BaseModel):
 
     stage1: dict[str, Any] = Field(default_factory=dict)
     stage2: dict[str, Any] = Field(default_factory=dict)
-
     stage3: dict[str, Any] = Field(default_factory=dict)
 
     result: PdfExtractionResult

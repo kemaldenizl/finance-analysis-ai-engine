@@ -27,6 +27,8 @@ dependencies = [
     "pdfplumber>=0.11.5",
     "pycountry>=24.6.1",
 
+    "pytesseract>=0.3.13",
+
     "python-dotenv>=1.0.1",
 ]
 
