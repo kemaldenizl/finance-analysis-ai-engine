@@ -24,6 +24,11 @@ dependencies = [
     "opencv-python-headless>=4.10.0.84",
     "numpy>=2.1.0",
 
+    "pdfplumber>=0.11.5",
+    "pycountry>=24.6.1",
+
+    "pytesseract>=0.3.13",
+
     "python-dotenv>=1.0.1",
 ]
 
