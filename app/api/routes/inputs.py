@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.input_record import InputClassification, InputRecord
 from app.schemas.input_response import InputUploadResponse
-from app.services.classification_service import ClassificationService
-from app.services.upload_service import UploadService
+from app.services.input.classification_service import ClassificationService
+from app.services.input.upload_service import UploadService
 from app.storage.object_storage import ObjectStorage
 from app.workers.stage2_dispatcher import Stage2Dispatcher
 
