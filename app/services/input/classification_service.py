@@ -1,8 +1,8 @@
 from app.schemas.classification import ClassificationResult, InputKind
-from app.services.image_classifier import ImageClassifier
-from app.services.mime_detector import MimeDetector
-from app.services.pdf_classifier import PDFClassifier
-from app.services.routing_service import RoutingService
+from app.services.input.image_classifier import ImageClassifier
+from app.services.input.mime_detector import MimeDetector
+from app.services.input.pdf_classifier import PDFClassifier
+from app.services.input.routing_service import RoutingService
 
 
 class ClassificationService:

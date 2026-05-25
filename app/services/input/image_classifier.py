@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 from app.schemas.classification import ClassificationResult, InputKind
-from app.services.routing_service import RoutingService
+from app.services.input.routing_service import RoutingService
 
 
 class ImageClassifier:
