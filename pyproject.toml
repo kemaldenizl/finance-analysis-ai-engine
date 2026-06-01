@@ -22,6 +22,7 @@ dependencies = [
     "pymupdf>=1.25.0",
     "pillow>=11.0.0",
     "opencv-python-headless>=4.10.0.84",
+    "pandas>=2.2.0,<3.0.0",
     "numpy>=2.1.0",
 
     "pdfplumber>=0.11.5",
