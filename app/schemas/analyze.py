@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -36,7 +35,6 @@ class NormalizedTransactionInput(BaseModel):
 
     date: str
     description: str
-
     merchant: MerchantInput | None = None
 
     amount: float = Field(ge=0)
@@ -46,7 +44,6 @@ class NormalizedTransactionInput(BaseModel):
     original_currency: str | None = None
 
     direction: Direction = "debit"
-
     installment: InstallmentInput = Field(default_factory=InstallmentInput)
 
     source: dict[str, Any] = Field(default_factory=dict)
@@ -72,7 +69,6 @@ class NormalizedSummaryInput(BaseModel):
     low_confidence_count: int | None = None
     invalid_count: int | None = None
     warning_count: int | None = None
-
     average_confidence: float | None = None
 
 
@@ -118,8 +114,12 @@ class AnalyzeRequest(BaseModel):
     scores: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
 
+    historical_transactions: list[NormalizedTransactionInput] = Field(default_factory=list)
+
     question: str | None = None
     purchase_scenario: PurchaseScenarioInput | None = None
+
+    use_llm: bool = True
 
 
 class CategorizedTransaction(BaseModel):
@@ -144,6 +144,9 @@ class CategorizationResult(BaseModel):
     transactions: list[CategorizedTransaction]
     summary: list[CategorySummary]
     uncategorized_count: int
+    rule_assisted_count: int = 0
+    embedding_assisted_count: int = 0
+    llm_assisted_count: int = 0
 
 
 class SpendingProfileResult(BaseModel):
@@ -173,6 +176,18 @@ class AnomalyResult(BaseModel):
     method: str
     items: list[AnomalyItem]
     observations: list[str] = Field(default_factory=list)
+    llm_explanation: str | None = None
+    explanation_method: str = "deterministic_template_v1"
+
+
+class SpendingForecastResult(BaseModel):
+    status: str
+    method: str
+    historical_month_count: int = 0
+    predicted_next_month_spend: float | None = None
+    currency: str | None = None
+    confidence: float | None = None
+    observations: list[str] = Field(default_factory=list)
 
 
 class InstallmentOption(BaseModel):
@@ -187,15 +202,19 @@ class InstallmentRecommendationResult(BaseModel):
     requested_amount: float | None = None
     currency: str | None = None
     baseline_monthly_spend: float | None = None
+    forecast_monthly_spend: float | None = None
+    forecast_method: str | None = None
     recommended_months: int | None = None
     options: list[InstallmentOption] = Field(default_factory=list)
     explanation: str | None = None
+    explanation_method: str = "deterministic_template_v1"
     warnings: list[str] = Field(default_factory=list)
 
 
 class AssistantAnswer(BaseModel):
     question: str | None = None
     answer: str | None = None
+    intent: str | None = None
     generation_method: str = "deterministic_template_v1"
 
 
@@ -203,6 +222,7 @@ class AiAnalysisResult(BaseModel):
     categorization: CategorizationResult
     spending_profile: SpendingProfileResult
     anomalies: AnomalyResult
+    forecast: SpendingForecastResult
     installment_recommendation: InstallmentRecommendationResult
     assistant: AssistantAnswer
     executive_summary: list[str] = Field(default_factory=list)
@@ -217,9 +237,49 @@ class AiAnalysisQuality(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class AiEngineMetadata(BaseModel):
+    analysis_version: str
+    llm_enabled: bool
+    llm_available: bool
+    llm_model: str | None = None
+    embedding_enabled: bool
+    embedding_model: str | None = None
+    anomaly_method: str
+    forecast_method: str
+
+
 class AnalyzeResponse(BaseModel):
     input_id: str
     status: AnalysisStatus = "completed"
     result: AiAnalysisResult
     quality: AiAnalysisQuality
+    engine: AiEngineMetadata
     warnings: list[str] = Field(default_factory=list)
+
+
+class LlmCategoryDecision(BaseModel):
+    merchant: str
+    category: str
+    subcategory: str | None = None
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason: str
+
+
+class LlmCategoryBatchResponse(BaseModel):
+    decisions: list[LlmCategoryDecision]
+
+
+class LlmNarrativeResponse(BaseModel):
+    text: str
+
+
+class ChatRequest(BaseModel):
+    analysis: AnalyzeResponse | None = None
+    analysis_id: str | None = None
+    question: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    intent: str
+    generation_method: str

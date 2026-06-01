@@ -1,0 +1,134 @@
+categories:
+  - id: travel
+    subcategories:
+      - id: flight_transport
+        examples:
+          - PEGASUS
+          - TURKISH AIRLINES
+          - THY
+          - WIZZ AIR
+          - OBILET.COM
+          - uçak bileti
+          - otobüs bileti
+        patterns:
+          - "\\bpegasus\\b"
+          - "\\bthy\\b"
+          - "\\bturkish airlines\\b"
+          - "\\bwizz\\b"
+          - "\\bobilet\\b"
+          - "\\bflight\\b"
+          - "\\bairlines?\\b"
+
+  - id: food
+    subcategories:
+      - id: delivery_restaurant
+        examples:
+          - TRENDYOL YEMEK
+          - YEMEKSEPETI
+          - GETIR YEMEK
+          - RESTAURANT
+          - CAFE
+        patterns:
+          - "\\btrendyol yemek\\b"
+          - "\\byemeksepeti\\b"
+          - "\\bgetir yemek\\b"
+          - "\\brestaurant\\b"
+          - "\\bcafe\\b"
+
+  - id: entertainment
+    subcategories:
+      - id: gaming_digital
+        examples:
+          - PLAYSTATION
+          - STEAM
+          - NETFLIX
+          - SPOTIFY
+          - BLUTV
+          - DISNEY PLUS
+        patterns:
+          - "\\bplaystation\\b"
+          - "\\bsteam\\b"
+          - "\\bnetflix\\b"
+          - "\\bspotify\\b"
+          - "\\bblutv\\b"
+          - "\\bdisney\\b"
+
+  - id: shopping
+    subcategories:
+      - id: electronics
+        examples:
+          - MEDIA MARKT
+          - MEDIAMARKT
+          - TEKNOSA
+          - APPLE STORE
+        patterns:
+          - "\\bmedia markt\\b"
+          - "\\bmediamarkt\\b"
+          - "\\bteknosa\\b"
+          - "\\bapple\\b"
+
+      - id: marketplace_retail
+        examples:
+          - AMAZON
+          - TRENDYOL
+          - HEPSIBURADA
+          - N11
+          - BKMKITAP
+          - KITAP
+        patterns:
+          - "\\bamazon\\b"
+          - "\\bhepsiburada\\b"
+          - "\\btrendyol\\b"
+          - "\\bn11\\b"
+          - "\\bbkmkitap\\b"
+          - "\\bkitap\\b"
+
+  - id: accommodation
+    subcategories:
+      - id: hotel_stay
+        examples:
+          - HOTEL
+          - OTEL
+          - BOOKING
+          - AIRBNB
+          - KONAKLAMA
+        patterns:
+          - "\\bhotel\\b"
+          - "\\botel\\b"
+          - "\\bbooking\\b"
+          - "\\bairbnb\\b"
+          - "\\bkonaklama\\b"
+
+  - id: utilities_tax
+    subcategories:
+      - id: tax_public_payment
+        examples:
+          - VERGI DAIRESI
+          - SGK
+          - ELEKTRIK FATURASI
+          - SU FATURASI
+        patterns:
+          - "\\bvergi\\b"
+          - "\\bdaire(?:si)?\\b"
+          - "\\bsgk\\b"
+          - "\\bfatura\\b"
+          - "\\belektrik\\b"
+
+  - id: payment
+    subcategories:
+      - id: card_payment
+        examples:
+          - KART ODEMESI
+          - ODEMENIZ ICIN TESEKKUR EDERIZ
+        patterns:
+          - "\\bkart ödeme\\b"
+          - "\\bkart odeme\\b"
+          - "\\bödemeniz için teşekkür\\b"
+          - "\\bodemeniz icin tesekkur\\b"
+
+  - id: other
+    subcategories:
+      - id: uncategorized
+        examples:
+          - OTHER
+        patterns: []

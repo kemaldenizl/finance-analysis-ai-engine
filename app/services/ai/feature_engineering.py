@@ -10,6 +10,35 @@ class FeatureEngineeringService:
     def build_dataframe(
         self,
         transactions: list[NormalizedTransactionInput],
+        historical_transactions: list[NormalizedTransactionInput] | None = None,
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        current_df = self._build_single_dataframe(
+            transactions=transactions,
+            dataset_role="current",
+        )
+
+        history_df = self._build_single_dataframe(
+            transactions=historical_transactions or [],
+            dataset_role="history",
+        )
+
+        combined_df = pd.concat(
+            [history_df, current_df],
+            ignore_index=True,
+        )
+
+        if not combined_df.empty:
+            combined_df = combined_df.drop_duplicates(
+                subset=["transaction_id"],
+                keep="last",
+            ).reset_index(drop=True)
+
+        return current_df, combined_df
+
+    def _build_single_dataframe(
+        self,
+        transactions: list[NormalizedTransactionInput],
+        dataset_role: str,
     ) -> pd.DataFrame:
         rows = []
 
@@ -17,6 +46,7 @@ class FeatureEngineeringService:
             transaction_id = transaction.transaction_id or self._fallback_transaction_id(
                 transaction=transaction,
                 index=index,
+                dataset_role=dataset_role,
             )
 
             merchant_name = self._merchant_name(transaction)
@@ -24,6 +54,7 @@ class FeatureEngineeringService:
             rows.append(
                 {
                     "transaction_id": transaction_id,
+                    "dataset_role": dataset_role,
                     "date": transaction.date,
                     "description": transaction.description,
                     "merchant": merchant_name,
@@ -49,8 +80,13 @@ class FeatureEngineeringService:
 
         dataframe = pd.DataFrame(rows)
 
-        dataframe["date_dt"] = pd.to_datetime(dataframe["date"], errors="coerce")
-        dataframe["month"] = dataframe["date_dt"].dt.to_period("M").astype(str)
+        dataframe["date_dt"] = pd.to_datetime(
+            dataframe["date"],
+            errors="coerce",
+        )
+
+        dataframe["month_dt"] = dataframe["date_dt"].dt.to_period("M").dt.to_timestamp()
+        dataframe["month"] = dataframe["month_dt"].dt.to_period("M").astype(str)
         dataframe["weekday"] = dataframe["date_dt"].dt.dayofweek
         dataframe["is_weekend"] = dataframe["weekday"].isin([5, 6])
 
@@ -79,6 +115,9 @@ class FeatureEngineeringService:
             & (dataframe["original_currency"] != dataframe["currency"])
         )
 
+        dataframe["is_low_confidence"] = dataframe["confidence"] < 0.70
+        dataframe["is_invalid"] = dataframe["validation_status"] == "invalid"
+
         return dataframe
 
     def debit_transactions(self, dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -102,9 +141,10 @@ class FeatureEngineeringService:
         self,
         transaction: NormalizedTransactionInput,
         index: int,
+        dataset_role: str,
     ) -> str:
         raw = (
-            f"{index}|{transaction.date}|{transaction.description}|"
+            f"{dataset_role}|{index}|{transaction.date}|{transaction.description}|"
             f"{transaction.amount}|{transaction.currency}|{transaction.direction}"
         )
 
@@ -116,6 +156,7 @@ class FeatureEngineeringService:
         return pd.DataFrame(
             columns=[
                 "transaction_id",
+                "dataset_role",
                 "date",
                 "description",
                 "merchant",
@@ -130,6 +171,7 @@ class FeatureEngineeringService:
                 "installment_total",
                 "has_installment",
                 "date_dt",
+                "month_dt",
                 "month",
                 "weekday",
                 "is_weekend",
@@ -138,5 +180,7 @@ class FeatureEngineeringService:
                 "signed_amount",
                 "log_amount",
                 "is_foreign_currency",
+                "is_low_confidence",
+                "is_invalid",
             ]
         )
