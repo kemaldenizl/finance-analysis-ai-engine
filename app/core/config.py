@@ -30,6 +30,28 @@ class Settings(BaseSettings):
     PREPROCESSING_SAVE_DEBUG_VARIANTS: bool = True
     PREPROCESSING_MAX_OUTPUT_VARIANTS_PER_PAGE: int = 4
 
+    AI_ANALYSIS_VERSION: str = "ai-analysis-v2"
+
+    LLM_ENABLED: bool = True
+    LLM_BASE_URL: str = "http://ollama:11434"
+    LLM_MODEL: str = "qwen2.5:1.5b"
+    LLM_TIMEOUT_SECONDS: int = 90
+    LLM_TEMPERATURE: float = 0.1
+
+    EMBEDDING_ENABLED: bool = True
+    EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    EMBEDDING_SIMILARITY_THRESHOLD: float = 0.52
+
+    ANOMALY_MIN_ROWS_FOR_PYOD: int = 8
+    ANOMALY_CONTAMINATION: float = 0.15
+
+    FORECAST_MIN_MONTHS_TRANSFORMER: int = 6
+    FORECAST_LOOKBACK_MONTHS: int = 3
+    FORECAST_TRAIN_EPOCHS: int = 120
+    FORECAST_RANDOM_SEED: int = 42
+
+    AI_STORE_ANALYSES: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

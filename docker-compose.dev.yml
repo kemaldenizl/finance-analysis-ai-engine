@@ -12,10 +12,16 @@ services:
     volumes:
       - ./app:/app/app
       - ./local_storage:/storage
+    environment:
+      LLM_ENABLED: "true"
+      LLM_BASE_URL: http://ollama:11434
+      LLM_MODEL: qwen2.5:1.5b
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      ollama:
         condition: service_healthy
 
   worker:
@@ -66,6 +72,34 @@ services:
       timeout: 5s
       retries: 5
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: finance_ai_ollama_dev
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  ollama_init:
+    image: ollama/ollama:latest
+    container_name: finance_ai_ollama_init_dev
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "ollama pull qwen2.5:1.5b"
+    restart: "no"
+
 volumes:
   postgres_data_dev:
   redis_data_dev:
+  ollama_data:
