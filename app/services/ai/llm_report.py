@@ -1,5 +1,6 @@
 import json
 
+from app.core.config import settings
 from app.schemas.analyze import (
     AnomalyResult,
     AssistantAnswer,
@@ -125,19 +126,21 @@ class LLMReportService:
             f"Analiz bağlamı: {json.dumps(compact_context, ensure_ascii=False)}"
         )
 
-        response = self.llm_provider.generate_structured(
-            response_model=LlmNarrativeResponse,
+        answer_text = self.llm_provider.generate_text(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
+            num_predict=settings.LLM_CHAT_NUM_PREDICT,
         )
+
+        answer_text = answer_text.strip() if answer_text else None
 
         return AssistantAnswer(
             question=question,
-            answer=response.text if response else deterministic_answer,
+            answer=answer_text or deterministic_answer,
             intent=intent,
             generation_method=(
                 "qwen_llm_context_answer_v1"
-                if response
+                if answer_text
                 else "deterministic_template_v2"
             ),
         )

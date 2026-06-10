@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "qwen2.5:1.5b"
     LLM_TIMEOUT_SECONDS: int = 90
     LLM_TEMPERATURE: float = 0.1
+    LLM_KEEP_ALIVE: str = "30m"
+    LLM_CHAT_NUM_PREDICT: int = 512
 
     EMBEDDING_ENABLED: bool = True
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"

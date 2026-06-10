@@ -63,6 +63,8 @@ def analyze_and_save(
     db.add(record)
     db.commit()
 
+    response.analysis_id = record.id
+
     return response
 
 

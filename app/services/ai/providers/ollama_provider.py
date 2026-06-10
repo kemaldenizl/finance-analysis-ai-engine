@@ -43,13 +43,22 @@ class OllamaProvider:
         self,
         system_prompt: str,
         user_prompt: str,
+        num_predict: int | None = None,
     ) -> str | None:
         if not settings.LLM_ENABLED:
             return None
 
+        options: dict[str, object] = {
+            "temperature": self.temperature,
+        }
+
+        if num_predict is not None:
+            options["num_predict"] = num_predict
+
         payload = {
             "model": self.model,
             "stream": False,
+            "keep_alive": settings.LLM_KEEP_ALIVE,
             "messages": [
                 {
                     "role": "system",
@@ -60,9 +69,7 @@ class OllamaProvider:
                     "content": user_prompt,
                 },
             ],
-            "options": {
-                "temperature": self.temperature,
-            },
+            "options": options,
         }
 
         try:
@@ -104,6 +111,7 @@ class OllamaProvider:
             "model": self.model,
             "stream": False,
             "format": schema,
+            "keep_alive": settings.LLM_KEEP_ALIVE,
             "messages": [
                 {
                     "role": "system",
