@@ -293,9 +293,32 @@ yalnızca hesaplanış kalibre edilir.)
 
 ---
 
-## 5. Kapsam Dışı (Bu Planda Yok)
+## 5. Çalışma Ortamı / Altyapı Notları
+
+LLM (Ollama) artık Docker içinde değil, **host Mac üzerinde** çalışıyor; container'lar
+ona `host.docker.internal:11434` üzerinden istek atıyor. Bu topolojinin getirdiği
+hususlar:
+
+- **Ağ/erişilebilirlik bir bağımlılıktır:** Host'ta Ollama kapalıysa
+  `OllamaProvider.is_available()` `False` döner ve tüm LLM çağrıları sessizce
+  deterministik fallback'e düşer. Model host'ta elle çekilmelidir
+  (`ollama pull qwen2.5:1.5b`).
+- **Env paritesi sağlandı:** Hem `docker-compose.dev.yml` hem `docker-compose.yml`
+  içindeki `api` ve `worker` servislerine `extra_hosts: host.docker.internal:host-gateway`
+  eklendi (Linux'ta `host.docker.internal` çözümü için gereklidir). Dev `worker`
+  servisine ayrıca `LLM_BASE_URL`/`LLM_MODEL` override'ı eklendi.
+- **Performans lehte:** Host (Apple Silicon/Metal) container CPU'sundan hızlıdır;
+  bu da `num_ctx` artırma, retry ve daha zengin prompt kalemlerini ucuzlatır.
+- **Timeout:** `LLM_TIMEOUT_SECONDS` artık container->host atlamasını ve model
+  soğuk başlatmasını da kapsar; ilk istek uzun sürebilir.
+
+---
+
+## 6. Kapsam Dışı (Bu Planda Yok)
 
 - **LLM yükseltme / değiştirme:** Kural #2 gereği kapsam dışı. Model
   `qwen2.5:1.5b` olarak kalır.
 - **Request/Response JSON şema değişiklikleri:** Kural #1 gereği yasak. Yeni
   alan eklenmez, mevcut alan kaldırılmaz/yeniden adlandırılmaz.
+- **Embedding modeli değişimi:** İndirme/boyut/performans riski nedeniyle model
+  sabit; yalnızca eşik ve taksonomi referansları iyileştirildi.

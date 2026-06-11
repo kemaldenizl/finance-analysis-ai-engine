@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import TypeVar
 
@@ -24,6 +23,17 @@ class OllamaProvider:
         self.timeout = settings.LLM_TIMEOUT_SECONDS
         self.temperature = settings.LLM_TEMPERATURE
 
+    def _build_options(self) -> dict:
+        return {
+            "temperature": self.temperature,
+            "num_ctx": settings.LLM_NUM_CTX,
+            "seed": settings.LLM_SEED,
+            "top_p": settings.LLM_TOP_P,
+            "top_k": settings.LLM_TOP_K,
+            "repeat_penalty": settings.LLM_REPEAT_PENALTY,
+            "num_predict": settings.LLM_NUM_PREDICT,
+        }
+
     def is_available(self) -> bool:
         if not settings.LLM_ENABLED:
             return False
@@ -48,9 +58,7 @@ class OllamaProvider:
         if not settings.LLM_ENABLED:
             return None
 
-        options: dict[str, object] = {
-            "temperature": self.temperature,
-        }
+        options = self._build_options()
 
         if num_predict is not None:
             options["num_predict"] = num_predict
@@ -102,44 +110,66 @@ class OllamaProvider:
 
         grounded_prompt = (
             f"{user_prompt}\n\n"
-            "Yalnızca verilen JSON schema ile uyumlu JSON döndür. "
-            "Açıklama, markdown veya ek metin ekleme.\n"
-            f"JSON schema:\n{json.dumps(schema, ensure_ascii=False)}"
+            "Yalnızca verilen JSON şemasıyla uyumlu geçerli JSON döndür. "
+            "Açıklama, markdown veya ek metin ekleme."
         )
 
-        payload = {
-            "model": self.model,
-            "stream": False,
-            "format": schema,
-            "keep_alive": settings.LLM_KEEP_ALIVE,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": grounded_prompt,
-                },
-            ],
-            "options": {
-                "temperature": self.temperature,
-            },
-        }
+        max_attempts = max(1, settings.LLM_MAX_RETRIES + 1)
+        last_error: Exception | None = None
 
-        try:
-            with httpx.Client(timeout=self.timeout) as client:
-                response = client.post(
-                    f"{self.base_url}/api/chat",
-                    json=payload,
+        for attempt in range(max_attempts):
+            prompt = grounded_prompt
+
+            if attempt > 0:
+                prompt = (
+                    f"{grounded_prompt}\n\n"
+                    "Önceki yanıt şemaya uymuyordu. "
+                    "Sadece şemaya birebir uyan geçerli JSON üret."
                 )
-                response.raise_for_status()
 
-            content = response.json()["message"]["content"]
+            payload = {
+                "model": self.model,
+                "stream": False,
+                "format": schema,
+                "keep_alive": settings.LLM_KEEP_ALIVE,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                "options": self._build_options(),
+            }
 
-            return response_model.model_validate_json(content)
+            try:
+                with httpx.Client(timeout=self.timeout) as client:
+                    response = client.post(
+                        f"{self.base_url}/api/chat",
+                        json=payload,
+                    )
+                    response.raise_for_status()
 
-        except (httpx.HTTPError, KeyError, ValidationError, ValueError) as exc:
-            logger.exception("LLM structured generation failed: %s", exc)
+                content = response.json()["message"]["content"]
 
-            return None
+                return response_model.model_validate_json(content)
+
+            except (httpx.HTTPError, KeyError, ValidationError, ValueError) as exc:
+                last_error = exc
+                logger.warning(
+                    "LLM structured generation attempt %d/%d failed: %s",
+                    attempt + 1,
+                    max_attempts,
+                    exc,
+                )
+
+        logger.exception(
+            "LLM structured generation failed after %d attempts: %s",
+            max_attempts,
+            last_error,
+        )
+
+        return None

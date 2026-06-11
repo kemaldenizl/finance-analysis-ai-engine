@@ -127,7 +127,10 @@ class AIAnalysisService:
 
         status = "completed"
 
-        if quality.invalid_transaction_count or quality.analysis_confidence < 0.55:
+        if (
+            quality.invalid_transaction_count
+            or quality.analysis_confidence < settings.QUALITY_PARTIAL_THRESHOLD
+        ):
             status = "partial"
 
         return AnalyzeResponse(
@@ -153,7 +156,9 @@ class AIAnalysisService:
         )
 
     def _build_quality(self, payload: AnalyzeRequest, dataframe) -> AiAnalysisQuality:
-        low_confidence_count = int((dataframe["confidence"] < 0.70).sum())
+        low_confidence_count = int(
+            (dataframe["confidence"] < settings.QUALITY_LOW_CONFIDENCE_THRESHOLD).sum()
+        )
         invalid_count = int((dataframe["validation_status"] == "invalid").sum())
 
         source_overall_confidence = None
@@ -169,8 +174,14 @@ class AIAnalysisService:
         penalty = 0.0
 
         if len(dataframe):
-            penalty += (low_confidence_count / len(dataframe)) * 0.20
-            penalty += (invalid_count / len(dataframe)) * 0.35
+            penalty += (
+                (low_confidence_count / len(dataframe))
+                * settings.QUALITY_LOW_CONFIDENCE_PENALTY
+            )
+            penalty += (
+                (invalid_count / len(dataframe))
+                * settings.QUALITY_INVALID_PENALTY
+            )
 
         analysis_confidence = round(
             max(0.0, min(1.0, float(source_overall_confidence) - penalty)),

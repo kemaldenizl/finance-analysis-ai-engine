@@ -1,5 +1,3 @@
-import json
-
 from app.core.config import settings
 from app.schemas.analyze import (
     AnomalyResult,
@@ -40,13 +38,17 @@ class LLMReportService:
         system_prompt = (
             "Sen bir banka ekstresi analiz raporu üreten asistansın. "
             "Sana verilen metrikleri değiştirme, yeni tutar veya bulgu icat etme. "
-            "Yalnızca kısa ve kullanıcı dostu Türkçe özet üret."
+            "Teknik terimler yerine günlük Türkçe kullan. "
+            "Yalnızca kısa, akıcı ve kullanıcı dostu bir özet üret."
         )
 
+        facts = "\n".join(f"- {line}" for line in deterministic)
+
         user_prompt = (
-            "Aşağıdaki doğrulanmış analiz özetini en fazla dört kısa maddelik "
-            "bir finansal gözlem metnine dönüştür:\n"
-            f"{json.dumps(deterministic, ensure_ascii=False)}"
+            "Aşağıdaki doğrulanmış bulguları, kullanıcının kolayca anlayacağı "
+            "2-4 cümlelik akıcı bir finansal özet paragrafına dönüştür. "
+            "Sadece bu bulgulara sadık kal:\n"
+            f"{facts}"
         )
 
         response = self.llm_provider.generate_structured(
@@ -97,33 +99,27 @@ class LLMReportService:
                 generation_method="deterministic_template_v2",
             )
 
-        compact_context = {
-            "profile": profile.model_dump(),
-            "anomaly_count": anomalies.anomaly_count,
-            "top_anomalies": [
-                item.model_dump()
-                for item in anomalies.items[:3]
-            ],
-            "forecast": forecast.model_dump(),
-            "installment": installment.model_dump(),
-            "category_summary": [
-                item.model_dump()
-                for item in categorization.summary[:5]
-            ],
-        }
+        context_facts = self._build_chat_context(
+            categorization=categorization,
+            profile=profile,
+            anomalies=anomalies,
+            forecast=forecast,
+            installment=installment,
+        )
 
         system_prompt = (
             "Sen Bonus finans sohbet asistanısın. "
             "Sadece verilen analiz bağlamındaki bilgileri kullan. "
             "Yeni tutar, işlem veya anomali uydurma. "
             "Finansal karar tavsiyesi yerine açıklayıcı bilgi ver. "
-            "Cevabı Türkçe ve kısa yaz."
+            "Cevabı Türkçe, kısa ve anlaşılır yaz."
         )
 
         user_prompt = (
             f"Kullanıcı sorusu: {question}\n"
-            f"Intent: {intent}\n"
-            f"Analiz bağlamı: {json.dumps(compact_context, ensure_ascii=False)}"
+            f"Konu: {intent}\n"
+            "Analiz bağlamı (yalnızca bu gerçekleri kullan):\n"
+            f"{context_facts}"
         )
 
         answer_text = self.llm_provider.generate_text(
@@ -145,6 +141,58 @@ class LLMReportService:
             ),
         )
 
+    def _build_chat_context(
+        self,
+        categorization: CategorizationResult,
+        profile: SpendingProfileResult,
+        anomalies: AnomalyResult,
+        forecast: SpendingForecastResult,
+        installment: InstallmentRecommendationResult,
+    ) -> str:
+        lines = []
+
+        if profile.primary_category and profile.primary_category_share is not None:
+            lines.append(
+                f"- En yoğun harcama kategorisi: {profile.primary_category} "
+                f"(toplam harcamanın %{round(profile.primary_category_share * 100, 1)}'i)."
+            )
+
+        if profile.labels:
+            lines.append(f"- Harcama profili: {', '.join(profile.labels)}.")
+
+        top_categories = [
+            f"{item.category} ({round(item.share_of_spend * 100, 1)}%)"
+            for item in categorization.summary[:3]
+        ]
+
+        if top_categories:
+            lines.append(f"- En çok harcanan kategoriler: {', '.join(top_categories)}.")
+
+        lines.append(f"- İşaretlenen anomali sayısı: {anomalies.anomaly_count}.")
+
+        for item in anomalies.items[:3]:
+            lines.append(
+                f"  - {item.merchant}: {item.amount:.2f} {item.currency} "
+                f"({item.severity} önem)."
+            )
+
+        if forecast.predicted_next_month_spend is not None:
+            lines.append(
+                f"- Gelecek dönem harcama tahmini: "
+                f"{forecast.predicted_next_month_spend:.2f} {forecast.currency}."
+            )
+
+        if installment.recommended_months:
+            lines.append(
+                f"- Önerilen taksit sayısı: {installment.recommended_months} ay "
+                f"(risk: {installment.options[installment.recommended_months - 1].risk_level})."
+                if installment.options
+                and len(installment.options) >= installment.recommended_months
+                else f"- Önerilen taksit sayısı: {installment.recommended_months} ay."
+            )
+
+        return "\n".join(lines)
+
     def _deterministic_summary(
         self,
         categorization: CategorizationResult,
@@ -157,31 +205,34 @@ class LLMReportService:
 
         if profile.primary_category and profile.primary_category_share is not None:
             output.append(
-                f"En yoğun harcama kategorisi {profile.primary_category}; "
-                f"payı %{round(profile.primary_category_share * 100, 1)}."
+                f"Harcamalarınızın en büyük bölümü {profile.primary_category} "
+                f"kategorisinde (%{round(profile.primary_category_share * 100, 1)})."
             )
 
         if profile.labels:
             output.append(
-                "Tespit edilen profil: "
+                "Harcama profiliniz: "
                 + ", ".join(profile.labels)
                 + "."
             )
 
-        output.append(
-            f"Anomali değerlendirmesinde {anomalies.anomaly_count} işlem işaretlendi."
-        )
+        if anomalies.anomaly_count:
+            output.append(
+                f"İncelemeye değer {anomalies.anomaly_count} işlem dikkat çekiyor."
+            )
+        else:
+            output.append("Dikkat çeken olağan dışı bir işlem görünmüyor.")
 
         if forecast.predicted_next_month_spend is not None:
             output.append(
-                f"Bir sonraki dönem harcama tahmini "
-                f"{forecast.predicted_next_month_spend:.2f} {forecast.currency}."
+                f"Gelecek dönem için tahmini harcamanız yaklaşık "
+                f"{forecast.predicted_next_month_spend:,.2f} {forecast.currency}."
             )
 
         if installment.recommended_months:
             output.append(
-                f"Satın alma senaryosu için {installment.recommended_months} ay "
-                "taksit seçeneği değerlendirildi."
+                f"Planladığınız alışveriş için {installment.recommended_months} ay "
+                "taksit uygun bir seçenek olarak öne çıkıyor."
             )
 
         return output
@@ -215,39 +266,42 @@ class LLMReportService:
     ) -> str:
         if intent == "category_question" and profile.primary_category:
             return (
-                f"En yoğun harcama kategoriniz {profile.primary_category}; "
-                f"toplam harcama payı yaklaşık "
-                f"%{round((profile.primary_category_share or 0) * 100, 1)}."
+                f"En çok harcama yaptığınız kategori {profile.primary_category}; "
+                f"bu kategori toplam harcamanızın yaklaşık "
+                f"%{round((profile.primary_category_share or 0) * 100, 1)}'ini oluşturuyor."
             )
 
         if intent == "anomaly_question":
             if anomalies.anomaly_count:
                 return (
-                    f"{anomalies.anomaly_count} işlem için inceleme sinyali bulundu. "
-                    f"En yüksek sinyal: {anomalies.items[0].message}"
+                    f"İncelemenizde fayda olan {anomalies.anomaly_count} işlem var. "
+                    f"En dikkat çekeni: {anomalies.items[0].message}"
                 )
 
-            return "Belirgin bir anomali sinyali tespit edilmedi."
+            return "Olağan dışı görünen bir işlem tespit edilmedi."
 
         if intent == "installment_question":
             if installment.recommended_months:
                 return (
-                    f"Verilen satın alma senaryosu için "
-                    f"{installment.recommended_months} ay seçeneği değerlendirildi."
+                    f"Planladığınız alışveriş için "
+                    f"{installment.recommended_months} ay taksit uygun görünüyor."
                 )
 
-            return "Taksit analizi için purchase_scenario bilgisi gönderilmelidir."
+            return (
+                "Taksit önerisi sunabilmem için alışveriş tutarını "
+                "(purchase_scenario) paylaşmanız gerekiyor."
+            )
 
         if intent == "forecast_question":
             if forecast.predicted_next_month_spend is not None:
                 return (
-                    f"Bir sonraki dönem için tahmini harcama "
-                    f"{forecast.predicted_next_month_spend:.2f} {forecast.currency}."
+                    f"Gelecek dönem için tahmini harcamanız yaklaşık "
+                    f"{forecast.predicted_next_month_spend:,.2f} {forecast.currency}."
                 )
 
-            return "Tahmin üretmek için yeterli dönem verisi bulunamadı."
+            return "Tahmin üretebilmem için yeterli geçmiş dönem verisi yok."
 
         return (
-            "Ekstreniz için kategori dağılımı, profil, anomali, "
-            "tahmin ve taksit değerlendirmesi hakkında soru sorabilirsiniz."
+            "Size kategori dağılımınız, harcama profiliniz, dikkat çeken işlemler, "
+            "harcama tahmininiz ve taksit seçenekleri hakkında yardımcı olabilirim."
         )
