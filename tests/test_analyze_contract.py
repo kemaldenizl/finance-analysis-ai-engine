@@ -93,6 +93,6 @@ def test_taxonomy_rules_categorize_known_merchants():
         for item in response.result.categorization.transactions
     }
 
-    assert categories.get("MIGROS ALISVERIS") == "groceries"
-    assert categories.get("SHELL AKARYAKIT") == "fuel"
-    assert categories.get("TURKCELL FATURA") == "telecom"
+    assert categories.get("MIGROS ALISVERIS") == "Market"
+    assert categories.get("SHELL AKARYAKIT") == "Akaryakıt"
+    assert categories.get("TURKCELL FATURA") == "İletişim"

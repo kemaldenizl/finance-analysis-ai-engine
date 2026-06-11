@@ -32,6 +32,13 @@ class CategorizationService:
         self.taxonomy = taxonomy or load_taxonomy()
         self.embedding_classifier = EmbeddingCategoryClassifier(self.taxonomy)
         self.llm_provider = llm_provider
+        self.category_labels = {
+            **self.taxonomy.display_labels,
+            "income_or_refund": "Gelir ve İade",
+        }
+
+    def _localize_category(self, category: str) -> str:
+        return self.category_labels.get(category, category.capitalize())
 
     def categorize(
         self,
@@ -132,12 +139,20 @@ class CategorizationService:
             categorized_transactions=categorized_transactions,
         )
 
+        uncategorized_count = sum(
+            1 for item in categorized_transactions if item.category == "other"
+        )
+
+        for item in categorized_transactions:
+            item.category = self._localize_category(item.category)
+
+        for item in summary:
+            item.category = self._localize_category(item.category)
+
         return CategorizationResult(
             transactions=categorized_transactions,
             summary=summary,
-            uncategorized_count=sum(
-                1 for item in categorized_transactions if item.category == "other"
-            ),
+            uncategorized_count=uncategorized_count,
             rule_assisted_count=sum(
                 1 for item in categorized_transactions if "rule" in item.method
             ),

@@ -1,5 +1,6 @@
 categories:
   - id: travel
+    label: Seyahat
     subcategories:
       - id: flight_transport
         examples:
@@ -26,6 +27,7 @@ categories:
           - "\\bairlines?\\b"
 
   - id: food
+    label: Yeme İçme
     subcategories:
       - id: delivery_restaurant
         examples:
@@ -58,6 +60,7 @@ categories:
           - "\\bpastane\\b"
 
   - id: groceries
+    label: Market
     subcategories:
       - id: supermarket
         examples:
@@ -89,6 +92,7 @@ categories:
           - "\\bmarketpaketi\\b"
 
   - id: fuel
+    label: Akaryakıt
     subcategories:
       - id: gas_station
         examples:
@@ -116,6 +120,7 @@ categories:
           - "\\bpetrol\\b"
 
   - id: transport
+    label: Ulaşım
     subcategories:
       - id: ride_hailing_transit
         examples:
@@ -145,6 +150,7 @@ categories:
           - "\\btaksi\\b"
 
   - id: health
+    label: Sağlık
     subcategories:
       - id: pharmacy_medical
         examples:
@@ -171,6 +177,7 @@ categories:
           - "\\bsağlık\\b"
 
   - id: clothing
+    label: Giyim
     subcategories:
       - id: apparel
         examples:
@@ -199,6 +206,7 @@ categories:
           - "\\bdecathlon\\b"
 
   - id: entertainment
+    label: Eğlence
     subcategories:
       - id: gaming_digital
         examples:
@@ -224,6 +232,7 @@ categories:
           - "\\bcinemaximum\\b"
 
   - id: telecom
+    label: İletişim
     subcategories:
       - id: mobile_internet
         examples:
@@ -244,6 +253,7 @@ categories:
           - "\\bttnet\\b"
 
   - id: subscription
+    label: Abonelik
     subcategories:
       - id: digital_subscription
         examples:
@@ -268,6 +278,7 @@ categories:
           - "\\bopenai\\b"
 
   - id: shopping
+    label: Alışveriş
     subcategories:
       - id: electronics
         examples:
@@ -303,6 +314,7 @@ categories:
           - "\\bkitap\\b"
 
   - id: accommodation
+    label: Konaklama
     subcategories:
       - id: hotel_stay
         examples:
@@ -319,6 +331,7 @@ categories:
           - "\\bkonaklama\\b"
 
   - id: education
+    label: Eğitim
     subcategories:
       - id: education_course
         examples:
@@ -338,6 +351,7 @@ categories:
           - "\\beğitim\\b"
 
   - id: insurance
+    label: Sigorta
     subcategories:
       - id: insurance_premium
         examples:
@@ -356,6 +370,7 @@ categories:
           - "\\bpolice\\b"
 
   - id: utilities_tax
+    label: Fatura ve Vergi
     subcategories:
       - id: tax_public_payment
         examples:
@@ -378,6 +393,7 @@ categories:
           - "\\bsu fatura\\b"
 
   - id: finance
+    label: Bankacılık
     subcategories:
       - id: banking_fee_atm
         examples:
@@ -405,6 +421,7 @@ categories:
           - "\\baidat\\b"
 
   - id: payment
+    label: Kart Ödemesi
     subcategories:
       - id: card_payment
         examples:
@@ -417,6 +434,7 @@ categories:
           - "\\bodemeniz icin tesekkur\\b"
 
   - id: other
+    label: Diğer
     subcategories:
       - id: uncategorized
         examples:
