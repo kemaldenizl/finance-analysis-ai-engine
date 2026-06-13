@@ -32,6 +32,13 @@ class CategorizationService:
         self.taxonomy = taxonomy or load_taxonomy()
         self.embedding_classifier = EmbeddingCategoryClassifier(self.taxonomy)
         self.llm_provider = llm_provider
+        self.category_labels = {
+            **self.taxonomy.display_labels,
+            "income_or_refund": "Gelir ve İade",
+        }
+
+    def _localize_category(self, category: str) -> str:
+        return self.category_labels.get(category, category.capitalize())
 
     def categorize(
         self,
@@ -60,15 +67,19 @@ class CategorizationService:
                 )
                 continue
 
-            merchant_text = f"{row['merchant']} {row['description']}"
+            raw_text = f"{row['merchant']} {row['description']}"
+            normalized_text = self._normalize_merchant_text(raw_text)
+            match_text = f"{raw_text} {normalized_text}".strip()
 
-            rule_prediction = self._predict_by_rule(merchant_text)
+            rule_prediction = self._predict_by_rule(match_text)
 
             if rule_prediction:
                 predictions[transaction_id] = rule_prediction
                 continue
 
-            embedding_prediction = self.embedding_classifier.predict(merchant_text)
+            embedding_prediction = self.embedding_classifier.predict(
+                normalized_text or raw_text
+            )
 
             if embedding_prediction:
                 predictions[transaction_id] = CategoryPrediction(
@@ -84,6 +95,7 @@ class CategorizationService:
                     "transaction_id": transaction_id,
                     "merchant": str(row["merchant"]),
                     "description": str(row["description"]),
+                    "merchant_normalized": normalized_text,
                 }
             )
 
@@ -127,12 +139,20 @@ class CategorizationService:
             categorized_transactions=categorized_transactions,
         )
 
+        uncategorized_count = sum(
+            1 for item in categorized_transactions if item.category == "other"
+        )
+
+        for item in categorized_transactions:
+            item.category = self._localize_category(item.category)
+
+        for item in summary:
+            item.category = self._localize_category(item.category)
+
         return CategorizationResult(
             transactions=categorized_transactions,
             summary=summary,
-            uncategorized_count=sum(
-                1 for item in categorized_transactions if item.category == "other"
-            ),
+            uncategorized_count=uncategorized_count,
             rule_assisted_count=sum(
                 1 for item in categorized_transactions if "rule" in item.method
             ),
@@ -143,6 +163,22 @@ class CategorizationService:
                 1 for item in categorized_transactions if "llm" in item.method
             ),
         )
+
+    def _normalize_merchant_text(self, text: str) -> str:
+        lowered = text.casefold()
+
+        cleaned = re.sub(
+            r"\b(pos|harcama|i̇şyeri|isyeri|işyeri|ref|referans|terminal|"
+            r"tutar|tl|try|kart|provizyon|onay|taksit)\b",
+            " ",
+            lowered,
+        )
+
+        cleaned = re.sub(r"\d{2,}", " ", cleaned)
+        cleaned = re.sub(r"[*/_|#:;.,()\[\]]+", " ", cleaned)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+        return cleaned or lowered.strip()
 
     def _predict_by_rule(self, merchant_text: str) -> CategoryPrediction | None:
         for candidate in self.taxonomy.candidates:
@@ -166,16 +202,41 @@ class CategorizationService:
     ) -> dict[str, CategoryPrediction]:
         allowed = sorted(self.taxonomy.allowed_categories)
 
+        items_for_prompt = []
+
+        for item in unresolved:
+            hint_text = item.get("merchant_normalized") or item["merchant"]
+            hints = self.embedding_classifier.predict_topk(hint_text, k=2)
+
+            items_for_prompt.append(
+                {
+                    "merchant": item["merchant"],
+                    "description": item["description"],
+                    "possible_categories": [hint.category for hint in hints],
+                }
+            )
+
+        few_shot = [
+            {"merchant": "MIGROS", "category": "groceries"},
+            {"merchant": "SHELL", "category": "fuel"},
+            {"merchant": "UBER", "category": "transport"},
+            {"merchant": "ECZANE GUVEN", "category": "health"},
+            {"merchant": "TURKCELL", "category": "telecom"},
+        ]
+
         system_prompt = (
             "Sen bir banka ekstresi merchant kategori sınıflandırıcısısın. "
             "Yalnızca verilen merchant ve açıklamayı kullan. "
-            "Kategori icat etme. Emin değilsen other seç."
+            "Kategori icat etme; sadece izin verilen kategorilerden birini seç. "
+            "possible_categories alanı en olası adayları içerir, ipucu olarak kullan. "
+            "Emin değilsen other seç."
         )
 
         user_prompt = (
             f"İzin verilen kategoriler: {allowed}\n"
+            f"Örnekler: {json.dumps(few_shot, ensure_ascii=False)}\n"
             "Aşağıdaki işlemleri kategorize et:\n"
-            f"{json.dumps(unresolved, ensure_ascii=False)}"
+            f"{json.dumps(items_for_prompt, ensure_ascii=False)}"
         )
 
         response = self.llm_provider.generate_structured(

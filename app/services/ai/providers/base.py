@@ -14,6 +14,7 @@ class LLMProvider(Protocol):
         self,
         system_prompt: str,
         user_prompt: str,
+        num_predict: int | None = None,
     ) -> str | None:
         ...
 

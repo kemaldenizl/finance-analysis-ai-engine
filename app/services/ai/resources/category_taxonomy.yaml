@@ -1,5 +1,6 @@
 categories:
   - id: travel
+    label: Seyahat
     subcategories:
       - id: flight_transport
         examples:
@@ -7,7 +8,10 @@ categories:
           - TURKISH AIRLINES
           - THY
           - WIZZ AIR
+          - SUNEXPRESS
+          - AJET
           - OBILET.COM
+          - ENUYGUN
           - uçak bileti
           - otobüs bileti
         patterns:
@@ -15,27 +19,194 @@ categories:
           - "\\bthy\\b"
           - "\\bturkish airlines\\b"
           - "\\bwizz\\b"
+          - "\\bsunexpress\\b"
+          - "\\bajet\\b"
           - "\\bobilet\\b"
+          - "\\benuygun\\b"
           - "\\bflight\\b"
           - "\\bairlines?\\b"
 
   - id: food
+    label: Yeme İçme
     subcategories:
       - id: delivery_restaurant
         examples:
           - TRENDYOL YEMEK
           - YEMEKSEPETI
           - GETIR YEMEK
+          - MIGROS YEMEK
+          - STARBUCKS
+          - MCDONALDS
+          - BURGER KING
+          - DOMINOS
+          - KFC
           - RESTAURANT
           - CAFE
         patterns:
           - "\\btrendyol yemek\\b"
           - "\\byemeksepeti\\b"
           - "\\bgetir yemek\\b"
+          - "\\bmigros yemek\\b"
+          - "\\bstarbucks\\b"
+          - "\\bmcdonald'?s\\b"
+          - "\\bburger king\\b"
+          - "\\bdomino'?s\\b"
+          - "\\bkfc\\b"
+          - "\\bpopeyes\\b"
           - "\\brestaurant\\b"
+          - "\\brestoran\\b"
           - "\\bcafe\\b"
+          - "\\bkafe\\b"
+          - "\\bpastane\\b"
+
+  - id: groceries
+    label: Market
+    subcategories:
+      - id: supermarket
+        examples:
+          - MIGROS
+          - BIM
+          - A101
+          - SOK
+          - CARREFOURSA
+          - MACROCENTER
+          - METRO MARKET
+          - FILE
+          - HAKMAR
+          - TARImkredI KOOP
+          - GETIR
+          - BANABI
+        patterns:
+          - "\\bmigros\\b"
+          - "\\bbim\\b"
+          - "\\ba101\\b"
+          - "\\bsok market\\b"
+          - "\\bşok market\\b"
+          - "\\bcarrefour\\b"
+          - "\\bmacrocenter\\b"
+          - "\\bfile market\\b"
+          - "\\bhakmar\\b"
+          - "\\bmarket\\b"
+          - "\\bgetir\\b"
+          - "\\bbanabi\\b"
+          - "\\bmarketpaketi\\b"
+
+  - id: fuel
+    label: Akaryakıt
+    subcategories:
+      - id: gas_station
+        examples:
+          - SHELL
+          - BP
+          - OPET
+          - PETROL OFISI
+          - TOTAL
+          - AYTEMIZ
+          - LUKOIL
+          - MOIL
+          - akaryakit
+        patterns:
+          - "\\bshell\\b"
+          - "\\bbp\\b"
+          - "\\bopet\\b"
+          - "\\bpetrol ofisi\\b"
+          - "\\bpo\\s?petrol\\b"
+          - "\\btotal\\b"
+          - "\\baytemiz\\b"
+          - "\\blukoil\\b"
+          - "\\bmoil\\b"
+          - "\\bakaryak\\b"
+          - "\\bbenzin\\b"
+          - "\\bpetrol\\b"
+
+  - id: transport
+    label: Ulaşım
+    subcategories:
+      - id: ride_hailing_transit
+        examples:
+          - UBER
+          - BITAKSI
+          - MARTI
+          - IETT
+          - METRO ISTANBUL
+          - ISTANBULKART
+          - HGS
+          - OGS
+          - OTOPARK
+          - ISPARK
+        patterns:
+          - "\\buber\\b"
+          - "\\bbitaksi\\b"
+          - "\\bmartı\\b"
+          - "\\bmarti\\b"
+          - "\\bscooter\\b"
+          - "\\biett\\b"
+          - "\\bistanbulkart\\b"
+          - "\\bmetro istanbul\\b"
+          - "\\bhgs\\b"
+          - "\\bogs\\b"
+          - "\\botopark\\b"
+          - "\\bispark\\b"
+          - "\\btaksi\\b"
+
+  - id: health
+    label: Sağlık
+    subcategories:
+      - id: pharmacy_medical
+        examples:
+          - ECZANE
+          - HASTANE
+          - ACIBADEM
+          - MEDICAL PARK
+          - MLP CARE
+          - MEMORIAL
+          - LABORATUVAR
+          - DIS KLINIGI
+        patterns:
+          - "\\beczane\\b"
+          - "\\bhastane\\b"
+          - "\\bacıbadem\\b"
+          - "\\bacibadem\\b"
+          - "\\bmedical park\\b"
+          - "\\bmemorial\\b"
+          - "\\bmedikal\\b"
+          - "\\bklinik\\b"
+          - "\\blaboratuvar\\b"
+          - "\\bpoliklinik\\b"
+          - "\\bsaglik\\b"
+          - "\\bsağlık\\b"
+
+  - id: clothing
+    label: Giyim
+    subcategories:
+      - id: apparel
+        examples:
+          - LC WAIKIKI
+          - ZARA
+          - H&M
+          - KOTON
+          - DEFACTO
+          - MAVI
+          - BOYNER
+          - PULL&BEAR
+          - BERSHKA
+          - DECATHLON
+        patterns:
+          - "\\blc waikiki\\b"
+          - "\\blcw\\b"
+          - "\\bzara\\b"
+          - "\\bh&m\\b"
+          - "\\bkoton\\b"
+          - "\\bdefacto\\b"
+          - "\\bmavi\\b"
+          - "\\bboyner\\b"
+          - "\\bpull&bear\\b"
+          - "\\bbershka\\b"
+          - "\\bstradivarius\\b"
+          - "\\bdecathlon\\b"
 
   - id: entertainment
+    label: Eğlence
     subcategories:
       - id: gaming_digital
         examples:
@@ -44,27 +215,83 @@ categories:
           - NETFLIX
           - SPOTIFY
           - BLUTV
+          - EXXEN
           - DISNEY PLUS
+          - YOUTUBE PREMIUM
         patterns:
           - "\\bplaystation\\b"
           - "\\bsteam\\b"
           - "\\bnetflix\\b"
           - "\\bspotify\\b"
           - "\\bblutv\\b"
+          - "\\bexxen\\b"
+          - "\\bgain\\b"
           - "\\bdisney\\b"
+          - "\\byoutube\\b"
+          - "\\bsinema\\b"
+          - "\\bcinemaximum\\b"
+
+  - id: telecom
+    label: İletişim
+    subcategories:
+      - id: mobile_internet
+        examples:
+          - TURKCELL
+          - VODAFONE
+          - TURK TELEKOM
+          - TURKNET
+          - SUPERONLINE
+          - MILLENICOM
+        patterns:
+          - "\\bturkcell\\b"
+          - "\\bvodafone\\b"
+          - "\\bturk telekom\\b"
+          - "\\btürk telekom\\b"
+          - "\\bturknet\\b"
+          - "\\bsuperonline\\b"
+          - "\\bmillenicom\\b"
+          - "\\bttnet\\b"
+
+  - id: subscription
+    label: Abonelik
+    subcategories:
+      - id: digital_subscription
+        examples:
+          - ICLOUD
+          - GOOGLE ONE
+          - GOOGLE STORAGE
+          - MICROSOFT 365
+          - ADOBE
+          - AMAZON PRIME
+          - LINKEDIN PREMIUM
+        patterns:
+          - "\\bicloud\\b"
+          - "\\bgoogle one\\b"
+          - "\\bgoogle\\s?storage\\b"
+          - "\\bmicrosoft\\b"
+          - "\\boffice 365\\b"
+          - "\\badobe\\b"
+          - "\\bamazon prime\\b"
+          - "\\bprime video\\b"
+          - "\\blinkedin\\b"
+          - "\\bchatgpt\\b"
+          - "\\bopenai\\b"
 
   - id: shopping
+    label: Alışveriş
     subcategories:
       - id: electronics
         examples:
           - MEDIA MARKT
           - MEDIAMARKT
           - TEKNOSA
+          - VATAN BILGISAYAR
           - APPLE STORE
         patterns:
           - "\\bmedia markt\\b"
           - "\\bmediamarkt\\b"
           - "\\bteknosa\\b"
+          - "\\bvatan bilgisayar\\b"
           - "\\bapple\\b"
 
       - id: marketplace_retail
@@ -73,6 +300,7 @@ categories:
           - TRENDYOL
           - HEPSIBURADA
           - N11
+          - CICEKSEPETI
           - BKMKITAP
           - KITAP
         patterns:
@@ -80,10 +308,13 @@ categories:
           - "\\bhepsiburada\\b"
           - "\\btrendyol\\b"
           - "\\bn11\\b"
+          - "\\bciceksepeti\\b"
+          - "\\bçiçeksepeti\\b"
           - "\\bbkmkitap\\b"
           - "\\bkitap\\b"
 
   - id: accommodation
+    label: Konaklama
     subcategories:
       - id: hotel_stay
         examples:
@@ -99,7 +330,47 @@ categories:
           - "\\bairbnb\\b"
           - "\\bkonaklama\\b"
 
+  - id: education
+    label: Eğitim
+    subcategories:
+      - id: education_course
+        examples:
+          - UNIVERSITE
+          - UDEMY
+          - KURS
+          - DIL OKULU
+          - OKUL TAKSIT
+        patterns:
+          - "\\büniversite\\b"
+          - "\\buniversite\\b"
+          - "\\budemy\\b"
+          - "\\bcoursera\\b"
+          - "\\bkurs\\b"
+          - "\\bdershane\\b"
+          - "\\bdil okulu\\b"
+          - "\\beğitim\\b"
+
+  - id: insurance
+    label: Sigorta
+    subcategories:
+      - id: insurance_premium
+        examples:
+          - SIGORTA
+          - KASKO
+          - DASK
+          - BES
+          - TRAFIK SIGORTASI
+        patterns:
+          - "\\bsigorta\\b"
+          - "\\bkasko\\b"
+          - "\\bdask\\b"
+          - "\\bbes\\b"
+          - "\\bbireysel emeklilik\\b"
+          - "\\bpoliçe\\b"
+          - "\\bpolice\\b"
+
   - id: utilities_tax
+    label: Fatura ve Vergi
     subcategories:
       - id: tax_public_payment
         examples:
@@ -107,14 +378,50 @@ categories:
           - SGK
           - ELEKTRIK FATURASI
           - SU FATURASI
+          - DOGALGAZ
+          - IGDAS
         patterns:
           - "\\bvergi\\b"
           - "\\bdaire(?:si)?\\b"
           - "\\bsgk\\b"
           - "\\bfatura\\b"
           - "\\belektrik\\b"
+          - "\\bdoğalgaz\\b"
+          - "\\bdogalgaz\\b"
+          - "\\bigdas\\b"
+          - "\\biski\\b"
+          - "\\bsu fatura\\b"
+
+  - id: finance
+    label: Bankacılık
+    subcategories:
+      - id: banking_fee_atm
+        examples:
+          - ATM NAKIT CEKME
+          - PARA CEKME
+          - HAVALE
+          - EFT
+          - FAST
+          - KOMISYON
+          - HESAP ISLETIM UCRETI
+          - FAIZ
+        patterns:
+          - "\\batm\\b"
+          - "\\bnakit çekme\\b"
+          - "\\bnakit cekme\\b"
+          - "\\bpara çekme\\b"
+          - "\\bpara cekme\\b"
+          - "\\bhavale\\b"
+          - "\\beft\\b"
+          - "\\bfast\\b"
+          - "\\bkomisyon\\b"
+          - "\\bişletim ücreti\\b"
+          - "\\bisletim ucreti\\b"
+          - "\\bfaiz\\b"
+          - "\\baidat\\b"
 
   - id: payment
+    label: Kart Ödemesi
     subcategories:
       - id: card_payment
         examples:
@@ -127,6 +434,7 @@ categories:
           - "\\bodemeniz icin tesekkur\\b"
 
   - id: other
+    label: Diğer
     subcategories:
       - id: uncategorized
         examples:

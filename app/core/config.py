@@ -34,21 +34,37 @@ class Settings(BaseSettings):
 
     LLM_ENABLED: bool = True
     LLM_BASE_URL: str = "http://ollama:11434"
-    LLM_MODEL: str = "qwen2.5:1.5b"
-    LLM_TIMEOUT_SECONDS: int = 90
+    LLM_MODEL: str = "qwen3:8b"
+    LLM_TIMEOUT_SECONDS: int = 180
     LLM_TEMPERATURE: float = 0.1
+    LLM_NUM_CTX: int = 4096
+    LLM_SEED: int = 42
+    LLM_TOP_P: float = 0.9
+    LLM_TOP_K: int = 40
+    LLM_REPEAT_PENALTY: float = 1.1
+    LLM_NUM_PREDICT: int = 256
+    LLM_MAX_RETRIES: int = 1
+    LLM_KEEP_ALIVE: str = "5m"
+    LLM_CHAT_NUM_PREDICT: int = 256
 
     EMBEDDING_ENABLED: bool = True
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     EMBEDDING_SIMILARITY_THRESHOLD: float = 0.52
 
     ANOMALY_MIN_ROWS_FOR_PYOD: int = 8
-    ANOMALY_CONTAMINATION: float = 0.15
+    ANOMALY_CONTAMINATION: float = 0.12
+    ANOMALY_PYOD_SCORE_CUTOFF: float = 0.40
+    ANOMALY_ROBUST_SCORE_CUTOFF: float = 0.25
 
     FORECAST_MIN_MONTHS_TRANSFORMER: int = 6
     FORECAST_LOOKBACK_MONTHS: int = 3
     FORECAST_TRAIN_EPOCHS: int = 120
     FORECAST_RANDOM_SEED: int = 42
+
+    QUALITY_LOW_CONFIDENCE_THRESHOLD: float = 0.70
+    QUALITY_LOW_CONFIDENCE_PENALTY: float = 0.20
+    QUALITY_INVALID_PENALTY: float = 0.35
+    QUALITY_PARTIAL_THRESHOLD: float = 0.55
 
     AI_STORE_ANALYSES: bool = True
 

@@ -84,32 +84,38 @@ class ForecastInstallmentService:
                 observations=["Forecast için harcama verisi bulunamadı."],
             )
 
+        weighted_average = self._weighted_moving_average(monthly)
+
         if month_count < settings.FORECAST_MIN_MONTHS_TRANSFORMER:
-            predicted = round(float(monthly.tail(min(3, month_count)).mean()), 2)
+            predicted = self._clamp_to_history(weighted_average, monthly)
 
             return SpendingForecastResult(
                 status="completed",
-                method="moving_average_fallback_v1",
+                method="weighted_moving_average_fallback_v2",
                 historical_month_count=month_count,
-                predicted_next_month_spend=predicted,
+                predicted_next_month_spend=round(predicted, 2),
                 currency=currency,
                 confidence=round(min(0.35 + month_count * 0.06, 0.65), 4),
                 observations=[
-                    "Transformer forecast için yeterli dönem olmadığından hareketli ortalama kullanıldı."
+                    "Yeterli dönem olmadığından ağırlıklı hareketli ortalama kullanıldı."
                 ],
             )
 
-        prediction = self._transformer_predict(monthly)
+        transformer_prediction = self._transformer_predict(monthly)
+
+        blended = 0.6 * transformer_prediction + 0.4 * weighted_average
+        prediction = self._clamp_to_history(blended, monthly)
 
         return SpendingForecastResult(
             status="completed",
-            method="pytorch_transformer_encoder_v1",
+            method="transformer_moving_average_ensemble_v1",
             historical_month_count=month_count,
-            predicted_next_month_spend=prediction,
+            predicted_next_month_spend=round(prediction, 2),
             currency=currency,
             confidence=round(min(0.65 + month_count * 0.025, 0.90), 4),
             observations=[
-                "Tahmin, aylık harcama serisi üzerinde Transformer Encoder kullanılarak üretildi."
+                "Tahmin, Transformer Encoder ile ağırlıklı hareketli ortalamanın "
+                "harmanlanmasıyla üretildi."
             ],
         )
 
@@ -167,10 +173,17 @@ class ForecastInstallmentService:
             options[-1],
         )
 
+        risk_text = {
+            "low": "rahatça karşılayabileceğiniz",
+            "medium": "orta düzeyde zorlayabilecek",
+            "high": "bütçenizi yükleyebilecek",
+        }.get(recommended.risk_level, recommended.risk_level)
+
         explanation = (
-            f"{scenario.amount:.2f} {scenario.currency.upper()} tutarındaki alışveriş için "
-            f"{recommended.months} ay taksit, tahmini aylık harcama seviyenize göre "
-            f"{recommended.risk_level} ek harcama baskısı oluşturuyor."
+            f"{scenario.amount:,.2f} {scenario.currency.upper()} tutarındaki alışveriş için "
+            f"{recommended.months} ay taksit, aylık {recommended.monthly_amount:,.2f} "
+            f"{scenario.currency.upper()} ödemeyle tahmini harcama seviyenize göre "
+            f"{risk_text} bir seçenek görünüyor."
         )
 
         explanation_method = "deterministic_template_v2"
@@ -201,6 +214,31 @@ class ForecastInstallmentService:
                 "recommendation_is_spending_burden_estimate_not_credit_advice"
             ],
         )
+
+    def _weighted_moving_average(self, monthly: pd.Series) -> float:
+        window = min(settings.FORECAST_LOOKBACK_MONTHS + 3, len(monthly))
+        recent = monthly.tail(window).to_numpy(dtype=float)
+
+        if len(recent) == 0:
+            return 0.0
+
+        weights = np.arange(1, len(recent) + 1, dtype=float)
+
+        return float(np.average(recent, weights=weights))
+
+    def _clamp_to_history(self, value: float, monthly: pd.Series) -> float:
+        values = monthly.to_numpy(dtype=float)
+
+        if len(values) == 0:
+            return max(value, 0.0)
+
+        lower = max(0.0, float(values.min()) * 0.5)
+        upper = float(values.max()) * 1.5
+
+        if upper <= 0.0:
+            return 0.0
+
+        return float(min(max(value, lower), upper))
 
     def _monthly_spend_series(
         self,

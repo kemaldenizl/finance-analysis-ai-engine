@@ -68,6 +68,60 @@ class EmbeddingCategoryClassifier:
 
             return None
 
+    def predict_topk(
+        self,
+        merchant_text: str,
+        k: int = 2,
+    ) -> list[EmbeddingCategoryPrediction]:
+        if not settings.EMBEDDING_ENABLED:
+            return []
+
+        if not merchant_text.strip():
+            return []
+
+        try:
+            self._ensure_loaded()
+
+            query_embedding = self._model.encode(
+                [merchant_text],
+                convert_to_tensor=True,
+                normalize_embeddings=True,
+            )
+
+            similarities = util.cos_sim(
+                query_embedding,
+                self._reference_embeddings,
+            )[0]
+
+            top_count = min(k, len(self.taxonomy.candidates))
+            top = similarities.topk(top_count)
+
+            results = []
+
+            for value, index in zip(
+                top.values.tolist(),
+                top.indices.tolist(),
+                strict=False,
+            ):
+                candidate = self.taxonomy.candidates[int(index)]
+
+                results.append(
+                    EmbeddingCategoryPrediction(
+                        category=candidate.category,
+                        subcategory=candidate.subcategory,
+                        confidence=round(min(0.90, float(value)), 4),
+                        similarity=round(float(value), 4),
+                        matched_reference=self._reference_documents[int(index)],
+                    )
+                )
+
+            return results
+
+        except Exception as exc:
+            logger.exception("Embedding top-k classification failed: %s", exc)
+
+            return []
+
     def is_available(self) -> bool:
         if not settings.EMBEDDING_ENABLED:
             return False

@@ -250,6 +250,7 @@ class AiEngineMetadata(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     input_id: str
+    analysis_id: str | None = None
     status: AnalysisStatus = "completed"
     result: AiAnalysisResult
     quality: AiAnalysisQuality

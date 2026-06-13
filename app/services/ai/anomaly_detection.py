@@ -116,7 +116,7 @@ class AnomalyDetectionService:
 
             adjusted_score = min(score + self._flag_bonus(business_flags), 1.0)
 
-            if adjusted_score < 0.35:
+            if adjusted_score < settings.ANOMALY_PYOD_SCORE_CUTOFF:
                 continue
 
             items.append(
@@ -155,7 +155,7 @@ class AnomalyDetectionService:
 
             score = min(score, 1.0)
 
-            if score < 0.22:
+            if score < settings.ANOMALY_ROBUST_SCORE_CUTOFF:
                 continue
 
             items.append(
@@ -252,12 +252,12 @@ class AnomalyDetectionService:
         currency: str,
     ) -> str:
         readable = {
-            "unusually_high_amount": "alışılmışın üzerinde tutar",
-            "foreign_currency_transaction": "yabancı para işlemi",
-            "installment_transaction": "taksitli işlem",
-            "low_source_confidence": "düşük veri güveni",
-            "source_validation_warning": "doğrulama uyarısı",
-            "pyod_outlier_score": "istatistiksel sapma",
+            "unusually_high_amount": "Alışılmışın üzerinde tutar",
+            "foreign_currency_transaction": "Yabancı para işlemi",
+            "installment_transaction": "Taksitli işlem",
+            "low_source_confidence": "Düşük veri güveni",
+            "source_validation_warning": "Doğrulama uyarısı",
+            "pyod_outlier_score": "İstatistiksel sapma",
         }
 
         reasons = [
@@ -266,9 +266,11 @@ class AnomalyDetectionService:
             if flag in readable
         ]
 
+        reason_text = ", ".join(reasons) if reasons else "Olağan dışı işlem"
+
         return (
-            f"{merchant} işleminde {', '.join(reasons)} sinyali var: "
-            f"{amount:.2f} {currency}."
+            f"{merchant} ({amount:,.2f} {currency}) işlemi dikkat çekiyor: "
+            f"{reason_text}."
         )
 
     def _build_llm_explanation(self, items: list[AnomalyItem]) -> str | None:

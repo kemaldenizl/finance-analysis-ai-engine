@@ -8,6 +8,7 @@ import yaml
 @dataclass(frozen=True)
 class CategoryCandidate:
     category: str
+    category_label: str
     subcategory: str
     examples: tuple[str, ...]
     patterns: tuple[str, ...]
@@ -20,6 +21,13 @@ class CategoryTaxonomy:
     @property
     def allowed_categories(self) -> set[str]:
         return {candidate.category for candidate in self.candidates}
+
+    @property
+    def display_labels(self) -> dict[str, str]:
+        return {
+            candidate.category: candidate.category_label
+            for candidate in self.candidates
+        }
 
     def embedding_documents(self) -> list[str]:
         output = []
@@ -50,11 +58,13 @@ def load_taxonomy() -> CategoryTaxonomy:
 
     for category in raw["categories"]:
         category_id = category["id"]
+        category_label = category.get("label", category_id)
 
         for subcategory in category.get("subcategories", []):
             candidates.append(
                 CategoryCandidate(
                     category=category_id,
+                    category_label=category_label,
                     subcategory=subcategory["id"],
                     examples=tuple(subcategory.get("examples", [])),
                     patterns=tuple(subcategory.get("patterns", [])),

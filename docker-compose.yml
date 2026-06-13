@@ -10,6 +10,8 @@ services:
       - "8000:8000"
     volumes:
       - input_storage:/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,6 +35,8 @@ services:
     command: ["uv", "run", "--no-sync", "celery", "-A", "app.workers.celery_app.celery_app", "worker", "-Q", "stage2", "--loglevel=INFO"]
     volumes:
       - input_storage:/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy
