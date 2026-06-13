@@ -35,17 +35,17 @@ class Settings(BaseSettings):
     LLM_ENABLED: bool = True
     LLM_BASE_URL: str = "http://ollama:11434"
     LLM_MODEL: str = "qwen3:8b"
-    LLM_TIMEOUT_SECONDS: int = 90
+    LLM_TIMEOUT_SECONDS: int = 180
     LLM_TEMPERATURE: float = 0.1
-    LLM_NUM_CTX: int = 6144
+    LLM_NUM_CTX: int = 4096
     LLM_SEED: int = 42
     LLM_TOP_P: float = 0.9
     LLM_TOP_K: int = 40
     LLM_REPEAT_PENALTY: float = 1.1
-    LLM_NUM_PREDICT: int = 512
-    LLM_MAX_RETRIES: int = 2
-    LLM_KEEP_ALIVE: str = "30m"
-    LLM_CHAT_NUM_PREDICT: int = 512
+    LLM_NUM_PREDICT: int = 256
+    LLM_MAX_RETRIES: int = 1
+    LLM_KEEP_ALIVE: str = "5m"
+    LLM_CHAT_NUM_PREDICT: int = 256
 
     EMBEDDING_ENABLED: bool = True
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"

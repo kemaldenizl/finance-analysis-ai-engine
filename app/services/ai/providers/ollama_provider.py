@@ -66,6 +66,7 @@ class OllamaProvider:
         payload = {
             "model": self.model,
             "stream": False,
+            "think": False,
             "keep_alive": settings.LLM_KEEP_ALIVE,
             "messages": [
                 {
@@ -131,6 +132,7 @@ class OllamaProvider:
                 "model": self.model,
                 "stream": False,
                 "format": schema,
+                "think": False,
                 "keep_alive": settings.LLM_KEEP_ALIVE,
                 "messages": [
                     {
